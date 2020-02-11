@@ -21,13 +21,13 @@
                     <details>
                         <summary>Images</summary>
                         <select id="selectnewimage" onchange="updateCurrentImage()"></select>
-                        <button id="addnewimage" onclick="addNewImage()">Add new image</button>
-                        <button id="removenewimage" onclick="removeNewImage()" disabled>Remove image</button>
+                        <button id="addnewimage" onclick="addNewImage()">Add Image</button>
+                        <button id="removenewimage" onclick="removeNewImage()" disabled>Remove Image</button>
                         <br />
                         <select id="displayedimage" onchange="updateDisplayedImage()"></select>
                         <br>
                         <input type="text" id="newOption" value="test.bpm"/>
-                        <button onclick="addOption()">Add Option!</button>
+                        <button onclick="addOption()">Add File</button>
                     </details>
                 </div>
                 <div id="ctrl_xlation" class="col">
@@ -35,15 +35,15 @@
                             <summary>Translations</summary>
                             <button id="rec"  type="button" onclick="toggleRecord()">Record Movement</button>
                             <select id="savedpaths" onchange="updateSelectedPath()" disabled>
-                                <option id="nullpath" value = -1>No paths available</option>
-                            </select> | 
+                                <option id="nullpath" value = -1>No Paths Available</option>
+                            </select>
                             <button id="playpath" type="button" onclick="playSelectedPaths()" disabled>▶ Play</button>
                             <button id="stoppath" type="button" onclick="stopSelectedPath(1)" disabled>■ Stop</button>
                             <button id="pausepath" type="button" onclick="stopSelectedPath(2)" disabled>❚❚ Pause</button>
-                            <button id="addkeyframe" type="button" onclick="addKeyFrame()" disabled>Add key-frame</button>
+                            <!--<button id="addkeyframe" type="button" onclick="addKeyFrame()" disabled>Add key-frame</button>-->
                             <br>
                             <input id="showpath" type="checkbox" autocomplete="off" onclick="showSelectedPath()" unchecked>
-                            <label for="showpath">Show selected path</label>
+                            <label for="showpath">Show Selected Path</label>
                         </details>
                         <br>
                 </div>
@@ -91,13 +91,11 @@
                 </div>
             </div>
         </div>
+        <hr/>
 
         <div id="canvascontainer"></div>
     </body>
-        <p id="demo">input</p>
-        <p id="array">initial array</p>
-        <p id="new_array">new array</p>
-        <p id="listlength">how long is the list?</p>
+
     <script>
         document.getElementById('record_canvas').onclick = function() {
             this.disabled = true;

@@ -249,7 +249,7 @@ var imageList = maincollection.imageList;
 function setup() {
     var cc = document.getElementById("canvascontainer");
     var t = document.getElementById("top");
-    canvas = createCanvas(cc.clientWidth, window.innerHeight-t.clientHeight - document.getElementById("ctrl_images").clientHeight);
+    canvas = createCanvas(1280, 720);
     canvas.parent('canvascontainer');
     imageMode(CENTER);
     imageList.push(new newimage());
