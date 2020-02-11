@@ -43,7 +43,7 @@
                             <!--<button id="addkeyframe" type="button" onclick="addKeyFrame()" disabled>Add key-frame</button>-->
                             <br>
                             <input id="showpath" type="checkbox" autocomplete="off" onclick="showSelectedPath()" unchecked>
-                            <label for="showpath">Show Selected Path</label>
+                            <label for="showpath"><i style="font-size: 0.75em">Show Selected Path</i></label>
                         </details>
                         <br>
                 </div>
@@ -72,7 +72,7 @@
                         <div class="slidecontainer">
                             <input type="range" min="5" max="30" value="15" class="slider" id="myRange">
                             <button id="record_canvas" type="button">Record Amination</button>
-                            Length: <span id="recordlength"></span> seconds
+                            <i style="font-size: 0.75em">Length: <span id="recordlength"></span> seconds</i>
                         </div>
                         
                         <script>
@@ -94,11 +94,15 @@
         <hr/>
 
         <div id="canvascontainer"></div>
+        <div id="recordMessage"> <h3>Happy With The Video? If not, record it again!<h3></div>
+        <div id="displayVid"></div>
     </body>
 
     <script>
         document.getElementById('record_canvas').onclick = function() {
+            var storeSeconds = seconds;
             this.disabled = true;
+            slider.disabled = true;
             var canvas = document.getElementById('defaultCanvas0');
             var canvasStream = canvas.captureStream();
 
@@ -114,8 +118,15 @@
                 if(stop) {
                     recorder.stopRecording(function() {
                         var blob = recorder.getBlob();
-                        document.body.innerHTML = '<video controls src="' + URL.createObjectURL(blob) + '" autoplay loop></video>';
+                        document.getElementById('displayVid').innerHTML = '<video controls src="' + URL.createObjectURL(blob) + '" autoplay loop></video>';
                         canvasStream.stop();
+
+                        //changes to the default html code
+                        document.querySelector('h2').innerHTML = 'Scroll Down For Video!';
+                        document.getElementById('recordMessage').style.display = "block";
+                        document.getElementById('record_canvas').disabled = false;
+                        slider.disabled = false;
+                        seconds = storeSeconds;
                     });
                     return;
                 }
@@ -123,18 +134,19 @@
             })();
 
 
-
-
+            //sets the title to display recording time
             var interval = setInterval(function() {
                 seconds--;
-                if(document.querySelector('h1')) {
-                    document.querySelector('h1').innerHTML = seconds + ' seconds remaining.';
+                if(document.querySelector('h2')) {
+                    document.querySelector('h2').innerHTML = seconds + ' seconds remaining.';
                 }
             }, 1000);
+
             setTimeout(function() {
                 clearTimeout(interval);
                 stop = true;
             }, seconds * 1000);
+            
         }
     </script>
 </html>

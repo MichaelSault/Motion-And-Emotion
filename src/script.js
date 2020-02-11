@@ -597,6 +597,7 @@ function pulse(){
 window.onload = function () {
     gui = new dat.GUI();
     var gui_fManip = gui.addFolder('Manipulate');
+    document.getElementById('recordMessage').style.display = "none";
 
     //manipulation
     gui_xPos = gui_fManip.add(ci, 'x', 0, canvas.width-551).listen().name('Move Horizontally');
@@ -991,12 +992,8 @@ function importConfig() {
 //takes user input
 function addOption() {
 	var x = document.getElementById("newOption").value;
-    document.getElementById("demo").innerHTML = x;
-    document.getElementById("array").innerHTML = images;
     images.push(x);
-    document.getElementById("new_array").innerHTML = images;
     updateDropDown();
-    document.getElementById("listlength").innerHTML = listlen;
 }
 
 //adds it to the drop down

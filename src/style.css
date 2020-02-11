@@ -35,8 +35,9 @@ canvas {
     align-self: center;
 }
 
-#ctrl_images {
-  outline: 1px solid;
+#displayVid {
+    width: 100%;
+    height: 100%;
 }
 
 .slidecontainer {
@@ -75,4 +76,12 @@ canvas {
   border-radius: 50%;
   background: #B22222;
   cursor: pointer;
+}
+
+video {
+    --width: calc(45%);
+    width: var(--width);
+    height: calc(var(--width) * 0.75);
+    margin: 1em;
+    object-fit: cover;
 }
