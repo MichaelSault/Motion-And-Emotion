@@ -6,8 +6,26 @@ Supervised by: Dr. Wonsook Lee
 Contributors: Talaal Mirza, Michael Sault
 
 ---
-
 ## TODO
+
+### Finalize Project and Work Out Bugs
+#### 2020 March 1
+- [x] User Interface to Load New Images
+  - Users can move images into the "media" folder to be selected
+  - Without PHP users must manually add items to the list
+  - Offer to add more commonly used images to list by defult
+- [ ] Change video type
+  - Optional if it is easy to do.
+- [ ] Fix video output size
+  - Important!
+- [ ] Fix bug where image won't resize.
+  - Important!
+- [ ] Generate User Manuals/Videos
+  - Optional if I have spare time
+
+
+---
+## TODO (HONOURS PROJECT)
 
 ### From meeting notes
 #### 2019 September 20
