@@ -15,13 +15,15 @@ Contributors: Talaal Mirza, Michael Sault
   - Without PHP users must manually add items to the list
   - Offer to add more commonly used images to list by defult
 - [ ] Change video type (**OPTIONAL**)
-  - If possible with the WebRTC library
+  - If possible within the WebRTC library
 - [x] Fix video output size (**IMPORTANT**)
   - Output is far to big on small screens.
-- [ ] Fix bug where image won't resize. (**IMPORTAT**)
+  - Also managed to fix the issue with animating along the path
+- [x] Fix bug where image won't resize. (**IMPORTAT**)
   - May have to remove/limit mutiple images or keyframe implementation
-- [ ] Generate User Manuals/Videos (**OPTIONAL**)
+- [x] Generate User Manuals/Videos (**OPTIONAL**)
   - Might have to meet with the profs one more time
+  - Completed a tutorial page demonstarting the basics of recording a path
 
 
 ---
