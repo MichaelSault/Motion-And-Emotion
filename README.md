@@ -1,5 +1,5 @@
 # Motion and Emotion
-uOttawa - Comp. Sci. Honours Project (Continued Consulting Work)
+uOttawa - Comp. Sci. Honours Project (Continued Consultation)
 
 Supervised by: Dr. Wonsook Lee
 

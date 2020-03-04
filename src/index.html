@@ -14,7 +14,7 @@
     </head>
     <body>
         <div id="top">
-            <h2> Motion and Emotion</h2>
+            <h1> Motion and Emotion</h1>
             <hr/>
             <div id="controls" class="colcontainer">
                 <div id="ctrl_images" class="col">
@@ -26,8 +26,12 @@
                         <br />
                         <select id="displayedimage" onchange="updateDisplayedImage()"></select>
                         <br>
-                        <input type="text" id="newOption" value="test.bpm"/>
+                        <input type="text" id="newOption" value="filename.bpm"/>
                         <button onclick="addOption()">Add File</button>
+                        <div class ="tooltip">
+                            <img src="questionmark.png" width="12px" height="12px"></a>
+                            <span class="tooltiptext"><b>This will add a file name to the dropdown list </b><br/><i>**File must already be in the media folder.**</i></span>
+                    </div>
                     </details>
                 </div>
                 <div id="ctrl_xlation" class="col">
@@ -49,23 +53,24 @@
                 </div>
                 <div id="idle_animation" class="col">
                         <details>
-                                <summary>Idle Animations</summary>
+                                <summary>Simple Animations</summary>
                                 <button id="waddle" type="button" onclick="button_waddle()">Waddle</button>
                                 <button id="bounce" type="button" onclick="button_bounce()">Bounce</button>
                                 <button id="pulse" type="button" onclick="button_pulse()">Pulse</button>
                                 <button id="stop" type="button" onclick="button_anistop()">StopAll</button>
                                 <br><i style="font-size: 0.75em">Press Any Button Twice to Stop It.</i>
+                                <br/><a href="Help.html" target="_blank">Want to animate the image? Click here!</a>
                             </details>
                             <br>
                 </div>
-                <div id="ctrl_config" class="col">
+                <!--<div id="ctrl_config" class="col">
                         <details>
                                 <summary>Import/Export Config.</summary>
                                 <button id="exc" type="button" onclick="exportConfig()">Export Config</button>
                                 <input type="file" id="ixc" accept="text/json" onchange="importConfig()">
                             </details>
                             <br>
-                </div>
+                </div> -->
                 <div id="Video Recorder" class="col">
                     <details>
                         <summary> Record Video </summary>

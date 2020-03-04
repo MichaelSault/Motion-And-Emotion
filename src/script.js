@@ -53,7 +53,6 @@ class pathplay {
             } else {
                 return -1;
             }
-
         };
 
         this.goBackward = function () {
@@ -65,7 +64,6 @@ class pathplay {
             } else {
                 return -1;
             }
-
         };
 
         this.stop = function () {
@@ -280,14 +278,11 @@ function draw() {
             console.log(e);
             alert("break");
         }
-        
         pop();
-        //translate(-(i.x + (i.image.width * i.scaleX / 2)), -(i.y + (i.image.height * i.scaleY / 2)));
-        //rotate(0);
     });
 
-    if (recording || showingPath){
 
+    if (recording || showingPath){
         //Draw Line
         noFill();
         beginShape();
@@ -307,9 +302,6 @@ function draw() {
         }
     }
         
-            
-        
-
     if (playing) {
         playNextFrame();
     }
@@ -350,94 +342,94 @@ function handlekeydown(e) {
   console.log("debug");
   console.log("keycode: "+e.keyCode);
     if(e.keyCode == 46){
-        window.removeEventListener("keydown", handlekeydown, true);
-        return;
-    }
+            window.removeEventListener("keydown", handlekeydown, true);
+            return;
+        }
         
-//thin and widden(a and d)
-  if (e.keyCode == 65) {    //z to make thin
-    if (thin == 0 && stretching) {  
-        thin = 1;
-    }else {
-        thin = 1;
-        if (stretching){
-            stretching = false;
-        } else stretching = true;
-    }
-  } else if (e.keyCode == 68) { //x to make fat
-    if (thin == 1 && stretching) {  
-        thin = 0;
-    }else {
-        thin = 0;
-        if (stretching){
-            stretching = false;
-        } else stretching = true;
-    }
+    //thin and widden(a and d)
+    if (e.keyCode == 65) {    //a to make thin
+        if (thin == 0 && stretching) {  
+            thin = 1;
+        }else {
+            thin = 1;
+            if (stretching){
+                stretching = false;
+            } else stretching = true;
+        }
+    } else if (e.keyCode == 68) { //d to make fat
+        if (thin == 1 && stretching) {  
+            thin = 0;
+        }else {
+            thin = 0;
+            if (stretching){
+                stretching = false;
+            } else stretching = true;
+        }
 
-//grow tall and short (w and s)
-  } else if (e.keyCode == 83) { //c to make short
-    if (shrink == 0 && growing) {  
-        shrink = 1;
-    }else {
-        shrink = 1;
-        if (growing){
-            growing = false;
-        } else growing = true;
-    }
-  } else if (e.keyCode == 87) { //v to make tall
-    if (shrink == 1 && growing) {  
-        shrink = 0;
-    }else {
-        shrink = 0;
-        if (growing){
-            growing = false;
-        } else growing = true;
-    }
+    //grow tall and short (w and s)
+    } else if (e.keyCode == 83) { //s to make short
+        if (shrink == 0 && growing) {  
+            shrink = 1;
+        }else {
+            shrink = 1;
+            if (growing){
+                growing = false;
+            } else growing = true;
+        }
+    } else if (e.keyCode == 87) { //w to make tall
+        if (shrink == 1 && growing) {  
+            shrink = 0;
+        }else {
+            shrink = 0;
+            if (growing){
+                growing = false;
+            } else growing = true;
+        }
 
-//elarge and shrink both x and y (use r and f)
-  } else if (e.keyCode == 70) { //r to make big
-    if (enlarge_toggle == 0 && enlarging) {  
-        enlarge_toggle = 1;
-    }else {
-        enlarge_toggle = 1;
-        if (enlarging){
-            enlarging = false;
-        } else enlarging = true;
-    }
-  } else if (e.keyCode == 82) { //f to make small
-    if (enlarge_toggle == 1 && enlarging) {  
-        enlarge_toggle = 0;
-    }else {
-        enlarge_toggle = 0;
-        if (enlarging){
-            enlarging = false;
-        } else enlarging = true;
-    }
+    //elarge and shrink both x and y (use r and f)
+    } else if (e.keyCode == 70) { //r to make big
+        if (enlarge_toggle == 0 && enlarging) {  
+            enlarge_toggle = 1;
+        }else {
+            enlarge_toggle = 1;
+            if (enlarging){
+                enlarging = false;
+            } else enlarging = true;
+        }
+    } else if (e.keyCode == 82) { //f to make small
+        if (enlarge_toggle == 1 && enlarging) {  
+            enlarge_toggle = 0;
+        }else {
+            enlarge_toggle = 0;
+            if (enlarging){
+                enlarging = false;
+            } else enlarging = true;
+        }
 
-//rotate either direction (use q and e)
-  } else if (e.keyCode == 69) { //e rotates left
-    if (rdirection == 1 && rotating) {
-        rdirection = 0;
-    } else {
-        rdirection = 0;
-        if (rotating){
-            rotating = false;
+    //rotate either direction (use q and e)
+    } else if (e.keyCode == 69) { //e rotates left
+        if (rdirection == 1 && rotating) {
+            rdirection = 0;
         } else {
-            rotating = true;
+            rdirection = 0;
+            if (rotating){
+                rotating = false;
+            } else {
+                rotating = true;
+            }
+        }
+    } else if (e.keyCode == 81) { //q rotates right
+        if (rdirection == 0 && rotating) {
+            rdirection = 1;
+        } else {
+            rdirection = 1;
+            if (rotating){
+                rotating = false;
+            } else {
+                rotating = true;
+            }
         }
     }
-  } else if (e.keyCode == 81) { //q rotates right
-    if (rdirection == 0 && rotating) {
-        rdirection = 1;
-    } else {
-        rdirection = 1;
-        if (rotating){
-            rotating = false;
-        } else {
-            rotating = true;
-        }
-    }
-}
 }
 
 function button_pulse(){
@@ -630,13 +622,6 @@ window.onload = function () {
         gui_sheerY = gui_fManip.add(ci, 'shearY', -90, 90).listen();
         gui_reset = gui_fManip.add(ci, 'reset').name('Reset Settings');
 
-        // gui_xPos.setValue(temp_ci.x);
-        // gui_yPos.setValue(temp_ci.y);
-        // gui_xScale.setValue(temp_ci.scaleX);
-        // gui_yScale.setValue(temp_ci.scaleY);
-        // gui_rotation.setValue(temp_ci.rotation);
-        // gui_sheerX.setValue(temp_ci.shearX);
-        // gui_sheerY.setValue(temp_ci.shearY);
         respawning_gui = false;
     };
 
