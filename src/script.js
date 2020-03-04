@@ -91,9 +91,9 @@ class recpath {
         this.push = function (x, y) {
             this.x.push(x);
             this.y.push(y);
-            this.scaleX.push(1);
-            this.scaleY.push(1);
-            this.rotation.push(0);
+            this.scaleX.push(ci.scaleX);
+            this.scaleY.push(ci.scaleY);
+            this.rotation.push(ci.rotation);
             this.length++;
         };
         this.pushKeyFrame = function(frameid, x, y, scaleX, scaleY, rotation, rcw){
@@ -343,7 +343,7 @@ function draw() {
     }
 }
 
-//window.addEventListener("keydown", handlekeydown, true);
+window.addEventListener("keydown", handlekeydown, true);
 
 
 function handlekeydown(e) {
@@ -881,16 +881,13 @@ function stopSelectedPath(stopcode) {
         console.log('HERE, ', ic);
         for(var i=0; i < imageList.length; i++)
             imageList[i].set_config(ic[i].imageSelector, ic[i].x, ic[i].y, ic[i].scaleX, ic[i].scaleY, ic[i].xyRatio, ic[i].lockRatio, ic[i].rotation, ic[i].shearX, ic[i].shearY);
-        btn_addKeyFrame.disabled = true;
         console.log("Reached end of playback");
     } else if (stopcode == 1) {
         play.stop();
         ci.reset();
-        btn_addKeyFrame.disabled = true;
         console.log("Playback stopped manually");
     } else if (stopcode == 2) {
         play.pause();
-        btn_addKeyFrame.disabled = false;
         console.log("Playback paused");
     }
 }
