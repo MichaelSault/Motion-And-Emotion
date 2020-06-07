@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <title>Motion and Emotion</title>
+        <script src="./lib/p5/p5.js"></script>
+        <script src="./lib/dat.gui/dat.gui.min.js"></script>
+        <script src="./lib/webrtc/RecordRTC.js"></script>
+        <script src="./lib/webrtc/adapter-latest.js"></script>
+        <script src="script.js"></script>
+
+    </head>
+    <body>
+        <div id="top">
+            <h1> Motion and Emotion</h1>
+            <hr/>
+            <div id="controls" class="colcontainer">
+                <div id="ctrl_images" class="col">
+                    <details>
+                        <summary>Images</summary>
+                        <select id="selectnewimage" onchange="updateCurrentImage()"></select>
+                        <button id="addnewimage" onclick="addNewImage()">Add new image</button>
+                        <button id="removenewimage" onclick="removeNewImage()">Remove new image</button>
+                        <br />
+                        <select id="displayedimage" onchange="updateDisplayedImage()"></select>
+                    </details>
+                </div>
+                <div id="ctrl_xlation" class="col">
+                    <details>
+                            <summary>Translations</summary>
+                            <button id="rec"  type="button" onclick="toggleRecord()">Record Movement</button>
+                            <select id="savedpaths" disabled>
+                                <option id="nullpath" value = -1>No paths available</option>
+                            </select> | 
+                            <button id="playpath" type="button" onclick="playSelectedPath()" disabled>▶ Play</button>
+                            <button id="stoppath" type="button" onclick="stopSelectedPath(1)" disabled>■ Stop</button>
+                            <button id="pausepath" type="button" onclick="stopSelectedPath(2)" disabled>❚❚ Pause</button>
+                        </details>
+                        <br>
+                </div>
+                <div id="idle_animation" class="col">
+                        <details>
+                                <summary>Idle Animations.</summary>
+                                <button id="waddle" type="button" onclick="button_waddle()">Waddle</button>
+                                <button id="bounce" type="button" onclick="button_bounce()">Bounce</button>
+                                <button id="pulse" type="button" onclick="button_pulse()">Pulse</button>
+                                <button id="stop" type="button" onclick="button_anistop()">StopAll</button>
+                                <p>Press Any Button Twice to Stop It.</p>
+                            </details>
+                            <br>
+                </div>
+                <div id="ctrl_config" class="col">
+                        <details>
+                                <summary>Import/Export Config.</summary>
+                                <button id="exc" type="button" onclick="exportConfig()">Export Config</button>
+                                <input type="file" id="ixc" accept="text/json" onchange="importConfig()">
+                            </details>
+                            <br>
+                </div>
+                <div id="Video Recorder" class="col">
+                    <details>
+                        <summary> Record Video </summary>
+                        <div class="slidecontainer">
+                            <input type="range" min="5" max="30" value="15" class="slider" id="myRange">
+                            <button id="record_canvas" type="button">Record Amination</button>
+                            Length: <span id="recordlength"></span> seconds
+                        </div>
+                        
+                        <script>
+                            var slider = document.getElementById("myRange");
+                            var output = document.getElementById("recordlength");
+                            var seconds = slider.value;
+                            document.getElementById("recordlength").innerHTML = slider.value;
+
+                            slider.oninput = function() {
+                                seconds = this.value;
+                                document.getElementById("recordlength").innerHTML = this.value;
+                            }
+                            </script>
+                    </details>
+                    </br>
+                </div>
+            </div>
+        </div>
+
+        <div id="canvascontainer"></div>
+    </body>
+
+    <script>
+        document.getElementById('record_canvas').onclick = function() {
+            this.disabled = true;
+            var canvas = document.getElementById('defaultCanvas0');
+            var canvasStream = canvas.captureStream();
+
+            var recorder = RecordRTC(canvasStream, {
+                type: 'video'
+            });
+
+            recorder.startRecording();
+
+            var stop = false;
+
+            (function looper() {
+                if(stop) {
+                    recorder.stopRecording(function() {
+                        var blob = recorder.getBlob();
+                        document.body.innerHTML = '<video controls src="' + URL.createObjectURL(blob) + '" autoplay loop></video>';
+                        canvasStream.stop();
+                    });
+                    return;
+                }
+                setTimeout(looper, 100);
+            })();
+
+
+
+
+            var interval = setInterval(function() {
+                seconds--;
+                if(document.querySelector('h1')) {
+                    document.querySelector('h1').innerHTML = seconds + ' seconds remaining.';
+                }
+            }, 1000);
+            setTimeout(function() {
+                clearTimeout(interval);
+                stop = true;
+            }, seconds * 1000);
+        }
+    </script>
+</html>
