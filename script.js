@@ -2,7 +2,7 @@ var ci;
 var images = ['pinguin1.bmp', 'pinguin3.bmp', 'scie1.bmp', 'scie2.bmp'];
 var mdir = './media/';
 var gui_currentFile, gui, ci, a;
-var recording = false;
+var recording, showingPath = false;
 var playing = false;
 var respawning_gui = false;
 var gui_currentFile, gui_xPos, gui_yPos, gui_xScale, gui_yScale, gui_rotation, gui_sheerX, gui_sheerY, gui_reset, canvas;
@@ -23,38 +23,47 @@ var bdirection = 0;
 var wadling = false;
 var waddle_toggle = false;
 var wdirection = 0;
+var listlen;
 
 class pathplay {
     constructor() {
         this.start = 0;
         this.end = 0;
+        this.keyframes = [];
         this.current = 0;
-        this.status = "";
+        this.status = "INIT";
+        this.initialConfig = [];
 
-        this.loadPath = function (l) {
+        this.loadPath = function (mf, ic) {
             this.start = 0;
-            this.end = l.length;
+            this.end = mf;
+            this.keyframes.push(this.start);
+            //this.keyframes.push(this.end);
+            if(this.status != "PAUSED")
+                this.initialConfig = ic;
+            this.status = "LOADED";
         };
 
         this.goForward = function () {
             if (this.current < this.end) {
                 this.current++;
                 console.log("Current frame: ", this.current);
+                this.status = "FORWARD";
                 return 0;
             } else {
                 return -1;
             }
-
         };
 
         this.goBackward = function () {
             if (this.current > this.start) {
                 this.current--;
+                console.log("Current frame: ", this.current);
+                this.status = "BACKWARD";
                 return 0;
             } else {
                 return -1;
             }
-
         };
 
         this.stop = function () {
@@ -72,11 +81,54 @@ class recpath {
     constructor() {
         this.x = [];
         this.y = [];
+        this.scaleX = [];
+        this.scaleY = [];
+        this.rotation = [];
         this.length = 0;
+        this.keyframes = [];
         this.push = function (x, y) {
             this.x.push(x);
             this.y.push(y);
+            this.scaleX.push(ci.scaleX);
+            this.scaleY.push(ci.scaleY);
+            this.rotation.push(ci.rotation);
             this.length++;
+        };
+        this.pushKeyFrame = function(frameid, x, y, scaleX, scaleY, rotation, rcw){
+            console.log("KF: ", frameid, x, y, scaleX, scaleY, rotation, rcw);
+            
+            if(this.length == 0){
+                this.keyframes.push(frameid);
+                this.x.push(x);
+                this.y.push(y);
+                this.scaleX.push(scaleX);
+                this.scaleY.push(scaleY);
+                this.rotation.push(rotation);
+                this.length++;
+            } else {
+                var last_kfi = this.keyframes[this.keyframes.length-1];
+                this.keyframes.push(frameid);
+                var d_frames = frameid - last_kfi;
+                var inc_scaleX = (scaleX - this.scaleX[last_kfi])/d_frames;
+                var inc_scaleY = (scaleY - this.scaleY[last_kfi])/d_frames;
+                var inc_rotation;
+                if(rcw){ //clockwise (0 -> 360 -> 0)
+                    inc_rotation = Math.abs(rotation - this.rotation[last_kfi])/d_frames;
+                } else { //counter clockwise (360 -> 0 -> 360)
+                    inc_rotation = -Math.abs(rotation - this.rotation[last_kfi])/d_frames;
+                }
+                console.log("KFd: ", last_kfi, d_frames, inc_scaleX, inc_scaleY, inc_rotation);
+                for(var i = last_kfi+1; i <= frameid; i++){
+                    this.scaleX[i] = this.scaleX[i-1] + inc_scaleX;
+                    this.scaleY[i] = this.scaleY[i-1] + inc_scaleY;
+                    this.rotation[i] = this.rotation[i-1] + inc_rotation;
+                }
+                for(var i = frameid+1; i<=this.length-1; i++){
+                    this.scaleX[i] = scaleX;
+                    this.scaleY[i] = scaleY;
+                    this.rotation[i] = rotation;
+                }
+            }
         };
         this.clear = function () {
             this.x = [];
@@ -100,8 +152,16 @@ class recpaths {
         this.selectPath = function (index) {
             this.selectedPath.x = this.saves[index].x;
             this.selectedPath.y = this.saves[index].y;
+            this.selectedPath.scaleX = this.saves[index].scaleX;
+            this.selectedPath.scaleY = this.saves[index].scaleY;
+            this.selectedPath.rotation = this.saves[index].rotation;
             this.selectedPath.length = this.saves[index].length;
+            this.selectedPath.keyframes = this.saves[index].keyframes;
         };
+
+        this.getRecPath = function (index) {
+            return this.saves[index];
+        }
     }
 }
 
@@ -115,6 +175,8 @@ class newimage {
         this.rotation = 0;
         this.shearX = this.shearY = 0;
         this.id = -1;
+        this.selectedPath = new recpath();
+        this.selectedPathIndex = 0;
     }
 
     reset() {
@@ -124,6 +186,34 @@ class newimage {
         this.lockRatio = false;
         this.rotation = 0;
         this.shearX = this.shearY = 0;
+    }
+
+    set_config(iimageSelector, ix, iy, iscaleX, iscaleY, ixyRatio, ilockRatio, irotation, ishearX, ishearY) {
+        this.imageSelector = iimageSelector;
+        this.x = ix;
+        this.y = iy;
+        this.scaleX = iscaleX;
+        this.scaleY = iscaleY;
+        this.xyRatio = ixyRatio;
+        this.lockRatio = ilockRatio;
+        this.rotation = irotation;
+        this.shearX = ishearX;
+        this.shearY = ishearY;
+    }
+
+    get_config(){
+        return {
+            imageSelector: this.imageSelector,
+            x: this.x,
+            y: this.y,
+            scaleX: this.scaleX,
+            scaleY: this.scaleY,
+            xyRatio: this.xyRatio,
+            lockRatio: this.lockRatio,
+            rotation: this.rotation,
+            shearX: this.shearX,
+            shearY: this.shearY
+        };
     }
 }
 
@@ -157,7 +247,7 @@ var imageList = maincollection.imageList;
 function setup() {
     var cc = document.getElementById("canvascontainer");
     var t = document.getElementById("top");
-    canvas = createCanvas(cc.clientWidth, window.innerHeight-t.clientHeight - document.getElementById("ctrl_images").clientHeight);
+    canvas = createCanvas(1280, 720);
     canvas.parent('canvascontainer');
     imageMode(CENTER);
     imageList.push(new newimage());
@@ -174,20 +264,44 @@ function draw() {
     background(255, 255, 255);
     imageList.forEach(i => {
         push();
-        shearX(i.shearX);
-        shearY(i.shearY);
-        translate(i.x + (i.image.width * i.scaleX / 2), i.y + (i.image.height * i.scaleY / 2));
-        rotate(i.rotation);
-        image(i.image, 0, 0, i.image.width * i.scaleX, i.image.height * i.scaleY);
+        try{
+            shearX(i.shearX);
+            shearY(i.shearY);
+            if(playing || play.status == "PAUSED"){
+                translate(i.x, i.y);    
+            } else {
+                translate(i.x + (i.image.width * i.scaleX / 2), i.y + (i.image.height * i.scaleY / 2));
+            }
+            rotate(i.rotation);
+            image(i.image, 0, 0, i.image.width * i.scaleX, i.image.height * i.scaleY);
+        } catch (e) {
+            console.log(e);
+            alert("break");
+        }
         pop();
-        //translate(-(i.x + (i.image.width * i.scaleX / 2)), -(i.y + (i.image.height * i.scaleY / 2)));
-        //rotate(0);
     });
 
-    if (recording)
-        for (var i = 0; i < p.length; i++)
-            ellipse(p.x[i], p.y[i], 5, 5);
 
+    if (recording || showingPath){
+        //Draw Line
+        noFill();
+        beginShape();
+        for (var i = 0; i < p.length; i++)
+            curveVertex(p.x[i], p.y[i]);
+        endShape();
+
+        //Draw Points
+        for (var i = 0; i < p.length; i++){
+            if(p.keyframes.includes(i)){
+                fill('#ff0000');
+                ellipse(p.x[i], p.y[i], 10, 10);
+            } else {
+                fill('#000000');
+                ellipse(p.x[i], p.y[i], 5, 5);
+            }
+        }
+    }
+        
     if (playing) {
         playNextFrame();
     }
@@ -227,91 +341,95 @@ window.addEventListener("keydown", handlekeydown, true);
 function handlekeydown(e) {
   console.log("debug");
   console.log("keycode: "+e.keyCode);
+    if(e.keyCode == 46){
+            window.removeEventListener("keydown", handlekeydown, true);
+            return;
+        }
+        
+    //thin and widden(a and d)
+    if (e.keyCode == 65) {    //a to make thin
+        if (thin == 0 && stretching) {  
+            thin = 1;
+        }else {
+            thin = 1;
+            if (stretching){
+                stretching = false;
+            } else stretching = true;
+        }
+    } else if (e.keyCode == 68) { //d to make fat
+        if (thin == 1 && stretching) {  
+            thin = 0;
+        }else {
+            thin = 0;
+            if (stretching){
+                stretching = false;
+            } else stretching = true;
+        }
 
-//thin and widden(a and d)
-  if (e.keyCode == 65) {    //z to make thin
-    if (thin == 0 && stretching) {  
-        thin = 1;
-    }else {
-        thin = 1;
-        if (stretching){
-            stretching = false;
-        } else stretching = true;
-    }
-  } else if (e.keyCode == 68) { //x to make fat
-    if (thin == 1 && stretching) {  
-        thin = 0;
-    }else {
-        thin = 0;
-        if (stretching){
-            stretching = false;
-        } else stretching = true;
-    }
+    //grow tall and short (w and s)
+    } else if (e.keyCode == 83) { //s to make short
+        if (shrink == 0 && growing) {  
+            shrink = 1;
+        }else {
+            shrink = 1;
+            if (growing){
+                growing = false;
+            } else growing = true;
+        }
+    } else if (e.keyCode == 87) { //w to make tall
+        if (shrink == 1 && growing) {  
+            shrink = 0;
+        }else {
+            shrink = 0;
+            if (growing){
+                growing = false;
+            } else growing = true;
+        }
 
-//grow tall and short (w and s)
-  } else if (e.keyCode == 83) { //c to make short
-    if (shrink == 0 && growing) {  
-        shrink = 1;
-    }else {
-        shrink = 1;
-        if (growing){
-            growing = false;
-        } else growing = true;
-    }
-  } else if (e.keyCode == 87) { //v to make tall
-    if (shrink == 1 && growing) {  
-        shrink = 0;
-    }else {
-        shrink = 0;
-        if (growing){
-            growing = false;
-        } else growing = true;
-    }
+    //elarge and shrink both x and y (use r and f)
+    } else if (e.keyCode == 70) { //r to make big
+        if (enlarge_toggle == 0 && enlarging) {  
+            enlarge_toggle = 1;
+        }else {
+            enlarge_toggle = 1;
+            if (enlarging){
+                enlarging = false;
+            } else enlarging = true;
+        }
+    } else if (e.keyCode == 82) { //f to make small
+        if (enlarge_toggle == 1 && enlarging) {  
+            enlarge_toggle = 0;
+        }else {
+            enlarge_toggle = 0;
+            if (enlarging){
+                enlarging = false;
+            } else enlarging = true;
+        }
 
-//elarge and shrink both x and y (use r and f)
-  } else if (e.keyCode == 70) { //r to make big
-    if (enlarge_toggle == 0 && enlarging) {  
-        enlarge_toggle = 1;
-    }else {
-        enlarge_toggle = 1;
-        if (enlarging){
-            enlarging = false;
-        } else enlarging = true;
-    }
-  } else if (e.keyCode == 82) { //f to make small
-    if (enlarge_toggle == 1 && enlarging) {  
-        enlarge_toggle = 0;
-    }else {
-        enlarge_toggle = 0;
-        if (enlarging){
-            enlarging = false;
-        } else enlarging = true;
-    }
-
-//rotate either direction (use q and e)
-  } else if (e.keyCode == 69) { //e rotates left
-    if (rdirection == 1 && rotating) {
-        rdirection = 0;
-    } else {
-        rdirection = 0;
-        if (rotating){
-            rotating = false;
+    //rotate either direction (use q and e)
+    } else if (e.keyCode == 69) { //e rotates left
+        if (rdirection == 1 && rotating) {
+            rdirection = 0;
         } else {
-            rotating = true;
+            rdirection = 0;
+            if (rotating){
+                rotating = false;
+            } else {
+                rotating = true;
+            }
+        }
+    } else if (e.keyCode == 81) { //q rotates right
+        if (rdirection == 0 && rotating) {
+            rdirection = 1;
+        } else {
+            rdirection = 1;
+            if (rotating){
+                rotating = false;
+            } else {
+                rotating = true;
+            }
         }
     }
-  } else if (e.keyCode == 81) { //q rotates right
-    if (rdirection == 0 && rotating) {
-        rdirection = 1;
-    } else {
-        rdirection = 1;
-        if (rotating){
-            rotating = false;
-        } else {
-            rotating = true;
-        }
-    }
-}
 }
 
 function button_pulse(){
@@ -404,6 +522,7 @@ function rotation() {
     }
 }
 
+
 function wait(ms) {
     var d = new Date();
     var d2 = null;
@@ -470,6 +589,7 @@ function pulse(){
 window.onload = function () {
     gui = new dat.GUI();
     var gui_fManip = gui.addFolder('Manipulate');
+    document.getElementById('recordMessage').style.display = "none";
 
     //manipulation
     gui_xPos = gui_fManip.add(ci, 'x', 0, canvas.width-551).listen().name('Move Horizontally');
@@ -502,13 +622,6 @@ window.onload = function () {
         gui_sheerY = gui_fManip.add(ci, 'shearY', -90, 90).listen();
         gui_reset = gui_fManip.add(ci, 'reset').name('Reset Settings');
 
-        // gui_xPos.setValue(temp_ci.x);
-        // gui_yPos.setValue(temp_ci.y);
-        // gui_xScale.setValue(temp_ci.scaleX);
-        // gui_yScale.setValue(temp_ci.scaleY);
-        // gui_rotation.setValue(temp_ci.rotation);
-        // gui_sheerX.setValue(temp_ci.shearX);
-        // gui_sheerY.setValue(temp_ci.shearY);
         respawning_gui = false;
     };
 
@@ -522,7 +635,7 @@ window.onload = function () {
     var ddn_selectimage = document.getElementById("selectnewimage");
     var btn_addImage = document.getElementById("addnewimage");
     var btn_delImage = document.getElementById("removenewimage");
-    var ddn_displayimage = document.getElementById("displayedimage");
+    
 
     var i1 = document.createElement('option');
     i1.text = "Image #1";
@@ -531,11 +644,17 @@ window.onload = function () {
     btn_play.disabled = btn_pause.disabled = btn_stop.disabled = ddn_savedPaths.disabled = true;
     btn_record.disabled = false;
 
-    for (var i in images) {
-        var i2 = document.createElement('option');
-        i2.text = images[i];
-        i2.value = mdir + images[i];
-        ddn_displayimage.appendChild(i2);
+
+    var select = document.getElementById("displayedimage");
+
+    for (var i = 0; i < images.length; i++) {
+        var opt = images[i];
+        var el = document.createElement("option");
+
+        el.textContent = opt;
+        el.value = mdir + images[i];
+        select.appendChild(el);
+        listlen = i;
     }
 };
 
@@ -549,12 +668,14 @@ function toggleRecord() {
     var btn_stop = document.getElementById("stoppath");
     var btn_pause = document.getElementById("pausepath");
     var ddn_savedPaths = document.getElementById("savedpaths");
+    var ddn_selectimage = document.getElementById("selectnewimage");
 
     if (recording) {
         paths.push(p);
-        p = new recpath();
+        imageList[ddn_selectimage.value].selectPath = p;
         updateDropdowns();
     } else {
+        p = new recpath();
         btn_pause.disabled = btn_play.disabled = btn_stop.disabled = ddn_savedPaths.disabled = true;
     }
 
@@ -564,13 +685,21 @@ function toggleRecord() {
 
 function mouseDragged() {
     if (recording) {
-        p.push(mouseX, mouseY);
+        if(p.length == 0){
+            console.log("pframe0");
+            var ic = ci.get_config();
+            p.pushKeyFrame(0, mouseX, mouseY, ic.scaleX, ic.scaleY, ic.rotation, false);
+        } else {
+            p.push(mouseX, mouseY);
+        }
     }
 }
 
 function updateCurrentImage() {
     var ddn_selectimage = document.getElementById("selectnewimage");
     var ddn_displayimage = document.getElementById("displayedimage");
+    var ddn_savedPaths = document.getElementById("savedpaths");
+    console.log("Updating current image: ", ddn_selectimage, ddn_displayimage, ddn_savedPaths, "\nDonezo");
     ci = imageList[ddn_selectimage.value];
     for (var i in ddn_displayimage.options) {
         if (ddn_displayimage.options[i].text != ci.imageSelector)
@@ -578,7 +707,11 @@ function updateCurrentImage() {
         else
             ddn_displayimage.options[i].selected = true;
     }
-
+   if(int(ci.selectedPathIndex) > paths.saves.length){
+        console.log("int(ci.selectedPathIndex)", int(ci.selectedPathIndex));
+        ddn_savedPaths.selectedIndex = int(ci.selectedPathIndex);
+   }
+        
     respawning_gui = true;
     respawnGUI();
 }
@@ -593,16 +726,30 @@ function addNewImage() {
     var i = new newimage();
     i.id = imageList.length;
     imageList.push(i);
+    var btn_removenewimage = document.getElementById("removenewimage");
+    if(! imageList.length < 2)
+        btn_removenewimage.disabled = false;
+    updateDropdowns();
+}
+
+function removeNewImage() {
+    var ddn_selectnewimage = document.getElementById("selectnewimage");
+    var btn_removenewimage = document.getElementById("removenewimage");
+    imageList.splice(ddn_selectnewimage.value, 1);
+    if(imageList.length < 2)
+        btn_removenewimage.disabled = true;
     updateDropdowns();
 }
 
 function updateDropdowns() {
     var ddn_savedPaths = document.getElementById("savedpaths");
     var btn_play = document.getElementById("playpath");
+    var chk_showPath = document.getElementById("showpath");
 
     if (paths.length > 0) {
         ddn_savedPaths.disabled = false;
         ddn_savedPaths.length = 0;
+        
 
         var i = 0;
         paths.saves.forEach(sp => {
@@ -622,27 +769,31 @@ function updateDropdowns() {
         ddn_savedPaths.disabled = true;
         btn_play.disabled = true;
     }
-
-    var ddn_selectmage = document.getElementById("selectnewimage");
+    
+    var ddn_selectimage = document.getElementById("selectnewimage");
+    var current_selection = int(ddn_selectimage.selectedIndex);
     if (imageList.length > 0) {
-        ddn_selectmage.disabled = false;
-        ddn_selectmage.length = 0;
+        ddn_selectimage.disabled = false;
+        ddn_selectimage.length = 0;
         var i = 0;
         imageList.forEach(im => {
             var o = document.createElement('option');
             o.text = "Image #" + (i + 1);
             o.value = i;
-            ddn_selectmage.appendChild(o);
+            ddn_selectimage.appendChild(o);
             i++;
         });
+        if(current_selection < ddn_selectimage.length)
+            ddn_selectimage.selectedIndex = ddn_selectimage.current_selection;
     } else {
-        ddn_selectmage.disabled = true;
+        ddn_selectimage.disabled = true;
     }
     respawning_gui = true;
+    showSelectedPath();
     respawnGUI();
 }
 
-function playSelectedPath() {
+function playSelectedPaths() {
     var btn_play = document.getElementById("playpath");
     var btn_stop = document.getElementById("stoppath");
     var btn_pause = document.getElementById("pausepath");
@@ -650,13 +801,34 @@ function playSelectedPath() {
     ddn_savedPaths.disabled = btn_play.disabled = playing = true;
     btn_pause.disabled = btn_stop.disabled = false;
     paths.selectPath(ddn_savedPaths.value);
-    play.loadPath(paths.selectedPath);
+    var configs = []
+    var maxframes = 0
+    imageList.forEach(i => {
+        configs.push(i.get_config());
+        if(paths.saves[i.selectedPathIndex].length > maxframes)
+            maxframes = paths.saves[i.selectedPathIndex].length
+    })
+    play.loadPath(maxframes, configs);
+    var maxframes = 0;
+    imageList.forEach(i => {
+        maxframes = paths.saves[i.selectedPathIndex].length > maxframes ? paths.saves[i.selectedPathIndex].length : maxframes;
+    });
+    play.end = maxframes;
 
 }
 
 function playNextFrame() {
-    ci.x = paths.selectedPath.x[play.current];
-    ci.y = paths.selectedPath.y[play.current];
+    imageList.forEach(i => {
+        var index = i.selectedPathIndex
+        if(paths.saves[index].length < play.current)
+            console.log('ix, pre', i.x, paths.saves[index].x[play.current]);
+            i.x = paths.saves[index].x[play.current];
+            console.log('ix, pst', i.x, paths.saves[index].x[play.current]);    
+            i.y = paths.saves[index].y[play.current];
+            i.scaleX = paths.saves[index].scaleX[play.current];
+            i.scaleY = paths.saves[index].scaleY[play.current];
+            i.rotation = paths.saves[index].rotation[play.current];
+    });
     var status = play.goForward();
     if (status == -1) {
         console.log("Last frame reached, stopping");
@@ -665,10 +837,21 @@ function playNextFrame() {
 
 }
 
+function addKeyFrame() {
+    var kfi = play.current;
+    var ic = ci.get_config();
+    var cw = true;
+    if(ic.rotation != p.rotation[p.keyframes[p.keyframes.length-1]]){
+        cw = confirm("Clockwise (ok) or counter-clockwise (cancel)?");
+    }
+    paths[ci.selectedPathIndex].pushKeyFrame(kfi, null, null, ic.scaleX, ic.scaleY, ic.rotation, cw);
+}
+
 function stopSelectedPath(stopcode) {
     var btn_play = document.getElementById("playpath");
     var btn_stop = document.getElementById("stoppath");
     var btn_pause = document.getElementById("pausepath");
+    var btn_addKeyFrame = document.getElementById("addkeyframe");
     var ddn_savedPaths = document.getElementById("savedpaths");
 
     console.log("Stopped at: ", play.current);
@@ -678,7 +861,11 @@ function stopSelectedPath(stopcode) {
 
     if (stopcode == 0) {
         play.stop();
-        ci.reset();
+
+        var ic = play.initialConfig;
+        console.log('HERE, ', ic);
+        for(var i=0; i < imageList.length; i++)
+            imageList[i].set_config(ic[i].imageSelector, ic[i].x, ic[i].y, ic[i].scaleX, ic[i].scaleY, ic[i].xyRatio, ic[i].lockRatio, ic[i].rotation, ic[i].shearX, ic[i].shearY);
         console.log("Reached end of playback");
     } else if (stopcode == 1) {
         play.stop();
@@ -688,6 +875,36 @@ function stopSelectedPath(stopcode) {
         play.pause();
         console.log("Playback paused");
     }
+}
+
+function updateSelectedPath(){
+    if(paths.length == 0)
+        return;
+    
+    var ddn_savedPaths = document.getElementById("savedpaths");
+    var ddn_selectimage = document.getElementById("selectnewimage");
+    console.log('here1');
+    imageList[ddn_selectimage.value].selectedPath = paths[ddn_savedPaths.value];
+    console.log('here2', imageList[ddn_selectimage.value].selectedPath, paths[ddn_savedPaths.value]);
+    console.log('jere', imageList, paths)
+    ci.selectedPathIndex = int(ddn_savedPaths.value);
+    console.log('here3', ci.selectedPathIndex, int(ddn_savedPaths.value))
+    showSelectedPath();
+}
+
+function showSelectedPath(){
+    if(paths.length == 0)
+        return;
+    
+    var chk_showPath = document.getElementById("showpath");
+    var ddn_savedPaths = document.getElementById("savedpaths");
+
+    showingPath = chk_showPath.checked;
+    if (showingPath){
+        paths.selectPath(ddn_savedPaths.value);
+        p = paths.selectedPath;
+    }
+    console.log("showingPath: ",showingPath);
 }
 
 function exportConfig() {
@@ -752,3 +969,23 @@ function importConfig() {
         alert("Sucessfully uploaded");
     };
 }
+
+
+//takes user input
+function addOption() {
+	var x = document.getElementById("newOption").value;
+    images.push(x);
+    updateDropDown();
+}
+
+//adds it to the drop down
+function updateDropDown() {
+	listlen += 1;
+    var select = document.getElementById("displayedimage");
+    var opt = images[listlen];
+    var el = document.createElement('option');
+    el.textContent = opt;
+    el.value = mdir + opt;
+    select.appendChild(el);
+}
+
