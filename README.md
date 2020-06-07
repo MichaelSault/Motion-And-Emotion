@@ -1,5 +1,4 @@
-# Project Demo: https://michaelsault.github.io/Motion-And-Emotion/
-(Chrome or Firefox only)
+### Project Demo(Chrome): https://michaelsault.github.io/Motion-And-Emotion/
 
 # Motion and Emotion
 uOttawa - Comp. Sci. Honours Project (Continued Consultation)
