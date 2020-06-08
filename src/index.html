@@ -127,7 +127,7 @@
                         canvasStream.stop();
 
                         //changes to the default html code
-                        document.querySelector('h2').innerHTML = 'Scroll Down For Video!';
+                        document.querySelector('h1').innerHTML = 'Scroll Down For Video!';
                         document.getElementById('recordMessage').style.display = "block";
                         document.getElementById('record_canvas').disabled = false;
                         slider.disabled = false;
@@ -142,8 +142,8 @@
             //sets the title to display recording time
             var interval = setInterval(function() {
                 seconds--;
-                if(document.querySelector('h2')) {
-                    document.querySelector('h2').innerHTML = seconds + ' seconds remaining.';
+                if(document.querySelector('h1')) {
+                    document.querySelector('h1').innerHTML = seconds + ' seconds remaining.';
                 }
             }, 1000);
 
